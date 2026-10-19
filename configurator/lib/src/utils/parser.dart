@@ -405,22 +405,15 @@ class YamlParser {
       if (translationsMap.isNotEmpty &&
           namespace != null &&
           namespace.isNotEmpty == true) {
-        var namespaces = [
-          translationsMap.keys.first,
-          ...namespace.split('.'),
-        ];
-
-        Map<String, dynamic> result = translationsMap[namespaces.first];
-
-        for (var i = 0; i < namespaces.length; i++) {
-          var current = namespaces.reversed.toList()[i];
-
-          result = {
-            current: result,
-          };
-        }
-
-        translationsMap = result;
+        // Apply the namespace within every locale. Wrapping only the first
+        // locale discards all subsequent translations in the same file.
+        translationsMap = translationsMap.map((locale, values) {
+          Map<String, dynamic> result = Map<String, dynamic>.from(values);
+          for (final segment in namespace.split('.').reversed) {
+            result = {segment: result};
+          }
+          return MapEntry(locale, result);
+        });
       }
 
       for (var t in translationsMap.entries) {
